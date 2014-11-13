@@ -50,48 +50,46 @@ thetas <- c(0.01, 0.05, 0.1, 0.2) # random effect std. dev. among individuals
 sigmas <- c(0.1, 0.5, 1)
 no.indiv <- c(6, 9, 12, 15)
 no.fruits <- c(3, 4, 5)
-reps <- 1:1000
-vals <- c("est", "stderr", "pval")
+nsim <- 200
+vals <- c("est", "stderr", "tval", "pval")
 
-pow <- array(dim = c(5, 4, 3, 4, 3, 1000, 3), dimnames = list(betas = betas, thetas = thetas, sigmas = sigmas, 
-                                                              no.indiv = no.indiv, no.fruits = no.fruits, reps = reps,
+# set up an empty multi-dimensional array with the right dimensions and names
+pow <- array(dim = c(5, 4, 3, 4, 3, 200, 4), dimnames = list(betas = betas, thetas = thetas, sigmas = sigmas, 
+                                                              no.indiv = no.indiv, no.fruits = no.fruits, reps = 1:nsim,
                                                               vals = vals) )
 
-# set up expt. design data frame
-expdat <- expand.grid(sbe.geno = as.integer(c(0:2)), indiv = factor(1:12), fruit = factor(1:5))
-expdat$indiv <- factor(paste(expdat$sbe.geno, expdat$indiv, sep='.'))
-
-#set.seed(101)
-#rm(list=".Random.seed", envir=globalenv())
-nsim <- 100
-#beta <- c(1, -0.35)
-beta <- c(1, -0.2)
-#theta <- 0.05
-theta <- 0.1
-sigma <- 0.5
-
-ss <- simulate(~ sbe.geno + (1 | indiv), nsim=nsim, family=gaussian, newdata=expdat,
-               newparams=list(theta=theta, beta=beta, sigma=sigma))
-
-expdat$resp <- ss[, 1] # Took simulation 1 and stuck it in 
-fit1 <- lmer(resp ~ sbe.geno + (1 | indiv), data=expdat)
-
-fitsim <- function(i) {
-  rf <- refit(fit1, ss[[i]])
+# function to refit the LMM for each simulated replicate
+fitsim <- function(j) {
+  rf <- refit(fit1, ss[[j]])
   tmp <- numeric(length=4)
   tmp[1:3] <- coef(summary(rf))["sbe.geno",]
   tmp[4] <- -2 * pt(abs(tmp[3]), get_ddf_Lb(rf, fixef(rf)), lower.tail = TRUE, log.p = TRUE)
   tmp
 }
 
-#t1 <- system.time(fitAll <- laply(seq(nsim), function(i) fitsim(i)))
-#t1
-fitAll <- laply(seq(nsim), function(i) fitsim(i))
-fitAll <- setNames(as.data.frame(fitAll), c("est", "stderr", "tval", "pval"))
-head(fitAll)
-
-with(fitAll, mean(pval < 0.05)) # power calculation
-
-## TO DO: wrap the above code in a loop with arrays as B. Bolker suggests and test a range of sample sizes,
-# effect sizes, and variances / errors
-# THEN, plot the results
+# Nested loop to iterate through all the paramater values to test
+for(b in 1:length(betas)) {
+  beta <- c(1, betas[b])
+  for(t in 1:length(thetas)) {
+    theta <- thetas[t]
+    for(s in 1:length(sigmas)) {
+      sigma <- sigmas[s]
+      for(i in 1:length(no.indiv)) {
+        Nindiv <- no.indiv[i]
+        for(f in 1:length(no.fruits)) {
+          Nfruit <- no.fruits[f]
+          # set up data frame with expt. parameters
+          expdat <- expand.grid(sbe.geno = as.integer(c(0:2)), indiv = factor(1:Nindiv), fruit = factor(1:Nfruit))
+          expdat$indiv <- factor(paste(expdat$sbe.geno, expdat$indiv, sep='.'))
+          # simulate response data using lme4::simulate according to the desired LMM model
+          ss <- simulate(~ sbe.geno + (1 | indiv), nsim=nsim, family=gaussian, newdata=expdat,
+                         newparams=list(theta=theta, beta=beta, sigma=sigma))
+          expdat$resp <- ss[, 1] # Take 1st simulated response values and stick them in 
+          fit1 <- lmer(resp ~ sbe.geno + (1 | indiv), data=expdat) # fit LMM w/ 1st simulated rep
+          fitAll <- laply(seq(nsim), function(j) fitsim(j)) # refit with all nsim datasets
+          pow[b,t,s,i,f,,] <- fitAll # input fitAll into the correct 200 x 4 array (which is a matrix) at the bottom of the hierarchy
+        }
+      }
+    }
+  }
+}
