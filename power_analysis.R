@@ -78,8 +78,8 @@ for(b in 1:length(betas)) {
         Nindiv <- no.indiv[i]
         for(f in 1:length(no.fruits)) {
           Nfruit <- no.fruits[f]
-          # set up data frame with expt. parameters
-          expdat <- expand.grid(sbe.geno = as.integer(c(0:2)), indiv = factor(1:Nindiv), fruit = factor(1:Nfruit))
+          # set up data frame with expt. parameters. SBE genotype is modeled as co-dominant with 0=homoz.M82 and 2=homoz.PEN
+          expdat <- expand.grid(sbe.geno = as.integer(c(0:2)), indiv = factor(1:Nindiv), fruit = factor(1:Nfruit)) # expand.grid() sets up a data frame with all combinations
           expdat$indiv <- factor(paste(expdat$sbe.geno, expdat$indiv, sep='.'))
           # simulate response data using lme4::simulate according to the desired LMM model
           ss <- simulate(~ sbe.geno + (1 | indiv), nsim=nsim, family=gaussian, newdata=expdat,
