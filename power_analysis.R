@@ -45,17 +45,17 @@ library(coefplot2)
 library(pbkrtest)
 
 # vectors for array's dimnames
-betas <- c(-0.4, -0.35, -0.3, -0.2, -0.1) # coefficient values for sbe.geno
-thetas <- c(0.01, 0.05, 0.1, 0.2) # random effect std. dev. among individuals
+betas <- c(-0.4, -0.3, -0.2) # coefficient values for sbe.geno
+thetas <- c(0.01, 0.05, 0.1) # random effect std. dev. among individuals
 sigmas <- c(0.1, 0.5, 1)
-no.indiv <- c(6, 9, 12, 15)
+no.indiv <- c(6, 9, 12)
 no.fruits <- c(3, 4, 5)
-nsim <- 200
+nsim <- 100
 vals <- c("est", "stderr", "tval", "pval")
 
 # set up an empty multi-dimensional array with the right dimensions and names
-pow <- array(dim = c(5, 4, 3, 4, 3, 200, 4), dimnames = list(betas = betas, thetas = thetas, sigmas = sigmas, 
-                                                              no.indiv = no.indiv, no.fruits = no.fruits, reps = 1:nsim,
+pow <- array(dim = c(3, 3, 3, 3, 3, 100, 4), dimnames = list(betas = betas, thetas = thetas, sigmas = sigmas, 
+                                                              no.indiv = no.indiv, no.fruits = no.fruits, nsim = 1:nsim,
                                                               vals = vals) )
 
 # function to refit the LMM for each simulated replicate
