@@ -47,11 +47,11 @@ library(pbkrtest)
 # vectors for array's dimnames
 betas <- c(-0.4, -0.3, -0.2) # coefficient values for sbe.geno
 thetas <- c(0.01, 0.05, 0.1) # random effect std. dev. among individuals
-sigmas <- c(0.1, 0.5, 1)
-no.indiv <- c(6, 9, 12)
-no.fruits <- c(3, 4, 5)
-nsim <- 100
-vals <- c("est", "stderr", "tval", "pval")
+sigmas <- c(0.1, 0.5, 1) # residual error values
+no.indiv <- c(6, 9, 12) # number individuals per genotype at SBE locus (i.e. 3 = P1, Het, P2)
+no.fruits <- c(3, 4, 5) # number of fruits per individual to phenotype
+nsim <- 100 # number of simulations per set of parameter values
+vals <- c("est", "stderr", "tval", "pval") # values to keep per simulation
 
 # set up an empty multi-dimensional array with the right dimensions and names
 pow <- array(dim = c(3, 3, 3, 3, 3, 100, 4), dimnames = list(betas = betas, thetas = thetas, sigmas = sigmas, 
@@ -60,10 +60,10 @@ pow <- array(dim = c(3, 3, 3, 3, 3, 100, 4), dimnames = list(betas = betas, thet
 
 # function to refit the LMM for each simulated replicate
 fitsim <- function(j) {
-  rf <- refit(fit1, ss[[j]])
-  tmp <- numeric(length=4)
-  tmp[1:3] <- coef(summary(rf))["sbe.geno",]
-  tmp[4] <- -2 * pt(abs(tmp[3]), get_ddf_Lb(rf, fixef(rf)), lower.tail = TRUE, log.p = TRUE)
+  rf <- refit(fit1, ss[[j]]) # refit LMM with next simulated set of response values
+  tmp <- numeric(length=4) # initialize a temp. vector to hold results
+  tmp[1:3] <- coef(summary(rf))["sbe.geno",] # save sbe.geno's coefficient estimate, stderr, and t-value
+  tmp[4] <- -2 * pt(abs(tmp[3]), get_ddf_Lb(rf, fixef(rf)), lower.tail = TRUE, log.p = TRUE) # calculate high-precision p-value using Kenward-Roger approximation for the denominator degrees of freedom 
   tmp
 }
 
