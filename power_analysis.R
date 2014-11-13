@@ -44,6 +44,19 @@ library(ggplot2)
 library(coefplot2)
 library(pbkrtest)
 
+# vectors for array's dimnames
+betas <- c(-0.4, -0.35, -0.3, -0.2, -0.1) # coefficient values for sbe.geno
+thetas <- c(0.01, 0.05, 0.1, 0.2) # random effect std. dev. among individuals
+sigmas <- c(0.1, 0.5, 1)
+no.indiv <- c(6, 9, 12, 15)
+no.fruits <- c(3, 4, 5)
+reps <- 1:1000
+vals <- c("est", "stderr", "pval")
+
+pow <- array(dim = c(5, 4, 3, 4, 3, 1000, 3), dimnames = list(betas = betas, thetas = thetas, sigmas = sigmas, 
+                                                              no.indiv = no.indiv, no.fruits = no.fruits, reps = reps,
+                                                              vals = vals) )
+
 # set up expt. design data frame
 expdat <- expand.grid(sbe.geno = as.integer(c(0:2)), indiv = factor(1:12), fruit = factor(1:5))
 expdat$indiv <- factor(paste(expdat$sbe.geno, expdat$indiv, sep='.'))
