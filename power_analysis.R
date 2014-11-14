@@ -117,3 +117,12 @@ powsub <- pow[pow$no.indiv=="9" & pow$no.fruits=="5",]
 powsub$hexaCol <- paste0("#", powsub$sigmaCol, powsub$thetaCol, powsub$sigmaCol)
 ggplot(powsub, aes(betas, power, color=hexaCol)) + geom_jitter(position = position_jitter(height=0, width=0.35), size=3) + 
   scale_color_identity()
+
+# Try alternative plot -- I like this the best --> to do: change colors, flip no. indiv. & fruits, add labels to grid, add 0.8 power line
+pow$no.indiv <- factor(pow$no.indiv, levels=c("12", "9", "6"), labels=c("12 indiv/geno", "9 indiv/geno", "6 indiv/geno"))
+pow$no.fruits <- factor(pow$no.fruits, levels=c("5", "4", "3"), labels=c("5 fruits/indiv", "4 fruits/indiv", "3 fruits/indiv"))
+ggplot(pow, aes(betas, power, color=thetas, shape=sigmas)) + geom_abline(intercept=0.8, slope=0, color="red", size=0.2) + 
+  geom_jitter(position = position_jitter(height=0, width=0.3)) + facet_grid(no.indiv~no.fruits) + 
+  scale_color_manual(values = c("magenta","green", "black")) + theme_gray(18)
+  
+  
