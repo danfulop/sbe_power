@@ -88,7 +88,7 @@ for(b in 1:length(betas)) {
           expdat$resp <- ss[, 1] # Take 1st simulated response values and stick them in 
           fit1 <- lmer(resp ~ sbe.geno + (1 | indiv), data=expdat) # fit LMM w/ 1st simulated rep
           fitAll <- laply(seq(nsim), function(j) fitsim(j)) # refit with all nsim datasets
-          simdat[b,t,s,i,f,,] <- fitAll # input fitAll into the correct 200 x 4 array (which is a matrix) at the bottom of the hierarchy
+          simdat[b,t,s,i,f,,] <- fitAll # input fitAll into the correct 100 x 4 array (which is a matrix) at the bottom of the hierarchy
         }
       }
     }
@@ -100,7 +100,7 @@ for(b in 1:length(betas)) {
 pow <- adply(pow, c(1,2,3,4,5), function(x) mean(x[,'pval'] < 0.05) ) # calculate power for all simulation sets
 colnames(pow)[6] <- "power"
 
-# Add RGB color columns. #RRGGBB. FF=100%, C0=75%, 80=50%, 00=0%
+# Add RGB color columns. #TTRRGGBB. FF=100%, C0=75%, 80=50%, 00=0%
 pow$betaCol[pow$betas=="-0.4"]<-"FF"; pow$betaCol[pow$betas=="-0.3"]<-"C0"; pow$betaCol[pow$betas=="-0.2"]<-"80"
 pow$thetaCol[pow$thetas=="0.1"]<-"FF"; pow$thetaCol[pow$thetas=="0.05"]<-"C0"; pow$thetaCol[pow$thetas=="0.01"]<-"80"
 pow$sigmaCol[pow$sigmas=="1"]<-"FF"; pow$sigmaCol[pow$sigmas=="0.5"]<-"BF"; pow$sigmaCol[pow$sigmas=="0.1"]<-"80"
@@ -111,3 +111,9 @@ ggplot(pow, aes(no.fruits, power, color=hexaCol)) + geom_jitter(position = posit
   facet_grid(.~no.indiv) + scale_color_identity()
 
 # Lastly, put plot through plot.ly's ggplot2 converter
+# maybe do a 3D plot w/ 9 indiv & 5 fruits  ...still, sigma would have to be represented by color
+
+powsub <- pow[pow$no.indiv=="9" & pow$no.fruits=="5",]
+powsub$hexaCol <- paste0("#", powsub$sigmaCol, powsub$thetaCol, powsub$sigmaCol)
+ggplot(powsub, aes(betas, power, color=hexaCol)) + geom_jitter(position = position_jitter(height=0, width=0.35), size=3) + 
+  scale_color_identity()
