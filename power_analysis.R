@@ -99,4 +99,15 @@ for(b in 1:length(betas)) {
 # I'm mainly interested in calculating power and assessing when it falls below a certain level, say 0.8
 pow <- adply(pow, c(1,2,3,4,5), function(x) mean(x[,'pval'] < 0.05) ) # calculate power for all simulation sets
 colnames(pow)[6] <- "power"
-pow
+
+# Add RGB color columns. #RRGGBB. FF=100%, C0=75%, 80=50%, 00=0%
+pow$betaCol[pow$betas=="-0.4"]<-"FF"; pow$betaCol[pow$betas=="-0.3"]<-"C0"; pow$betaCol[pow$betas=="-0.2"]<-"80"
+pow$thetaCol[pow$thetas=="0.1"]<-"FF"; pow$thetaCol[pow$thetas=="0.05"]<-"C0"; pow$thetaCol[pow$thetas=="0.01"]<-"80"
+pow$sigmaCol[pow$sigmas=="1"]<-"FF"; pow$sigmaCol[pow$sigmas=="0.5"]<-"BF"; pow$sigmaCol[pow$sigmas=="0.1"]<-"80"
+pow$hexaCol <- paste0("#", pow$sigmaCol, pow$thetaCol, pow$betaCol, pow$thetaCol)
+
+# Plot with hexadecimal colors where: sigma=opacity, beta=green, theta=magenta
+ggplot(pow, aes(no.fruits, power, color=hexaCol)) + geom_jitter(position = position_jitter(height=0, width=0.25)) +
+  facet_grid(.~no.indiv) + scale_color_identity()
+
+# Lastly, put plot through plot.ly's ggplot2 converter
